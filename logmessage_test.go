@@ -7,7 +7,7 @@ import (
 )
 
 func TestSerialise(t *testing.T) {
-	date := time.Date(2017, time.January, 3, 10, 23, 34, 200, time.UTC)
+	date := time.Date(2017, time.January, 3, 10, 23, 34, 200, time.UTC).UnixNano()
 	logMessage := NewLogMessage("Test", date, "messagestring")
 	serialised, err := logMessage.Serialise()
 	if err != nil {

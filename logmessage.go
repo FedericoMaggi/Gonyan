@@ -3,7 +3,6 @@ package gonyan
 import (
 	"encoding/json"
 	"fmt"
-	"time"
 )
 
 // LogMessage structure defines the basic standard object containing a message
@@ -15,10 +14,10 @@ type LogMessage struct {
 }
 
 // NewLogMessage builds a new LogMessage and returns its reference.
-func NewLogMessage(tag string, timestamp time.Time, message string) *LogMessage {
+func NewLogMessage(tag string, timestamp int64, message string) *LogMessage {
 	return &LogMessage{
 		Tag:       tag,
-		Timestamp: timestamp.UTC().UnixNano(),
+		Timestamp: timestamp,
 		Message:   message,
 	}
 }

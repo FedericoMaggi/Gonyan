@@ -131,9 +131,9 @@ func (l *Logger) Logf(level LogLevel, format string, args ...interface{}) {
 
 // Log function builds the final JSON message and sends it to the correct streams.
 func (l *Logger) Log(level LogLevel, message string) {
-	var t time.Time
+	var t int64
 	if l.timestamp {
-		t = time.Now()
+		t = time.Now().UTC().UnixNano()
 	}
 	m := NewLogMessage(l.tag, t, message)
 

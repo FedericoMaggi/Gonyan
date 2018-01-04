@@ -15,7 +15,7 @@ type Logger struct {
 	tag       string
 	metadata  map[string]string
 	timestamp bool
-	streams *StreamManager
+	streams   *StreamManager
 }
 
 // NewLogger creates a new logger instance with provided configuration.
@@ -24,7 +24,7 @@ func NewLogger(tag string, metadata map[string]string, timestamp bool) *Logger {
 		tag:       tag,
 		mutex:     &sync.Mutex{},
 		timestamp: timestamp,
-		streams: NewStreamManager(),
+		streams:   NewStreamManager(),
 	}
 	return logger
 }
@@ -107,6 +107,21 @@ func (l *Logger) Fatal(message string) {
 	l.Log(Fatal, message)
 }
 
+// Panicf logs provided message into panic level streams.
+// The function accepts a format and a variadic number of arguments
+// to compose the final log data.
+// Note: When log is performed panic() is invoked.
+func (l *Logger) Panicf(format string, args ...interface{}) {
+	l.Fatal(fmt.Sprintf(format, args))
+}
+
+// Panic logs provided message into panic level streams.
+// Note: When log is performed panic() is invoked.
+func (l *Logger) Panic(message string) {
+	l.Log(Fatal, message)
+	panic(message)
+}
+
 // Logf logs provided message into the streams corresponding to provided level.
 // The function accepts a format and a variadic number of arguments
 // to compose the final log data.
@@ -124,6 +139,6 @@ func (l *Logger) Log(level LogLevel, message string) {
 
 	// Send message to streams via the StreamManager.
 	if err := l.streams.Send(level, m); err != nil {
-		fmt.Printf("[FATAL][Gonyan] Can't send log `%s` to stream `%s`", message, GetLevelLabel(level))
+		fmt.Printf("[FATAL] [gonyan] Can't send log `%s` to stream `%s`", message, GetLevelLabel(level))
 	}
 }

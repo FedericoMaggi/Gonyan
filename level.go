@@ -11,6 +11,7 @@ type LogLevel int
 //  * Warning
 //  * Error
 //  * Fatal
+//  * Panic
 const (
 	Debug   LogLevel = iota
 	Verbose LogLevel = iota
@@ -18,6 +19,7 @@ const (
 	Warning LogLevel = iota
 	Error   LogLevel = iota
 	Fatal   LogLevel = iota
+	Panic   LogLevel = iota
 )
 
 // GetLevelLabel returns a string label for provided level.
@@ -35,6 +37,8 @@ func GetLevelLabel(level LogLevel) string {
 		return "Error"
 	case Fatal:
 		return "Fatal"
+	case Panic:
+		return "Panic"
 	default:
 		return ""
 	}

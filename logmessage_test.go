@@ -1,6 +1,7 @@
 package gonyan
 
 import (
+	"bytes"
 	"testing"
 	"time"
 )
@@ -12,13 +13,17 @@ func TestSerialise(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Unexpected error: %s", err.Error())
 	}
-	if serialised != `{"tag":"Test","timestamp":1483439014000000200,"message":"messagestring"}` {
+	if serialised == nil {
+		t.Fatalf("Serialised is nil")
+	}
+
+	if bytes.Compare(serialised, []byte(`{"tag":"Test","timestamp":1483439014000000200,"message":"messagestring"}`)) != 0 {
 		t.Fatalf("Serialisation error, unexpected serialised log: %s", serialised)
 	}
 }
 
 func TestDeserialise(t *testing.T) {
-	serialised := `{"tag":"Test","timestamp":1483439014000000200,"message":"messagestring"}`
+	serialised := []byte(`{"tag":"Test","timestamp":1483439014000000200,"message":"messagestring"}`)
 	logMessage, err := Deserialise(serialised)
 	if err != nil {
 		t.Fatalf("Unexpected deserialisation error: %s", err.Error())
@@ -34,7 +39,7 @@ func TestDeserialise(t *testing.T) {
 	if logMessage.Timestamp != 1483439014000000200 {
 		t.Fatalf("Unexpected Timestamp found. Expected: %d - Found: %d", 1483439014000000200, logMessage.Timestamp)
 	}
-	
+
 	date := time.Unix(0, logMessage.Timestamp)
 	if date.Day() != 3 {
 		t.Fatalf("Unexpected Timestamp Day found. Expected: %d - Found: %d", 3, date.Day())

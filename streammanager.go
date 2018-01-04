@@ -47,13 +47,13 @@ func (s *StreamManager) Send(level LogLevel, message *LogMessage) error {
 		return fmt.Errorf("invalid log level provided")
 	}
 
-	messageString, err := message.Serialise()
+	messageBytes, err := message.Serialise()
 	if err != nil {
 		return fmt.Errorf("serialisation error: %s", err.Error())
 	}
 
 	for i := 0; i < len(registeredStreams); i++ {
-		registeredStreams[i].Write(messageString)
+		registeredStreams[i].Write(messageBytes)
 	}
 	return nil
 }

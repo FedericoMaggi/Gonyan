@@ -11,6 +11,7 @@ func newMockStream(size int) *mockStream {
 	}
 }
 
-func (m *mockStream) Write(message string) {
-	m.out <- message
+func (m *mockStream) Write(messageBytes []byte) (int, error) {
+	m.out <- string(messageBytes)
+	return len(messageBytes), nil
 }

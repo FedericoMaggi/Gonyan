@@ -25,17 +25,16 @@ func NewLogMessage(tag string, timestamp time.Time, message string) *LogMessage 
 
 // Serialise uses caller LogMessage data to generate a valid JSON string
 // serialised log.
-func (m *LogMessage) Serialise() (string, error) {
+func (m *LogMessage) Serialise() ([]byte, error) {
 	messageBytes, err := json.Marshal(m)
 	if err != nil {
-		return "", fmt.Errorf("%s", err.Error())
+		return nil, fmt.Errorf("%s", err.Error())
 	}
-	return string(messageBytes), nil
+	return messageBytes, nil
 }
 
 // Deserialise uses provided data to generate a LogMessage structure.
-func Deserialise(message string) (*LogMessage, error) {
-	messageBytes := []byte(message)
+func Deserialise(messageBytes []byte) (*LogMessage, error) {
 	logMessage := &LogMessage{}
 	if err := json.Unmarshal(messageBytes, &logMessage); err != nil {
 		return nil, fmt.Errorf("%s", err.Error())

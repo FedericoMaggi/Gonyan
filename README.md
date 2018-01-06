@@ -1,6 +1,7 @@
 # Gonyan
 Gonyan is a simple stream based logging library for Go.
 
+[![Build Status](https://travis-ci.org/FedericoMaggi/gonyan.svg?branch=master)](https://travis-ci.org/FedericoMaggi/gonyan)&nbsp;
 [![GoDoc](https://godoc.org/github.com/FedericoMaggi/gonyan?status.svg)](https://godoc.org/github.com/FedericoMaggi/gonyan)
 
 

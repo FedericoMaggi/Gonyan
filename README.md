@@ -3,7 +3,7 @@ Gonyan is a simple stream based logging library for Go.
 
 [![Build Status](https://travis-ci.org/FedericoMaggi/gonyan.svg?branch=master)](https://travis-ci.org/FedericoMaggi/gonyan)&nbsp;
 [![GoDoc](https://godoc.org/github.com/FedericoMaggi/gonyan?status.svg)](https://godoc.org/github.com/FedericoMaggi/gonyan)&nbsp;
-[![Coverage Status](https://coveralls.io/repos/github/FedericoMaggi/gonyan/badge.svg?branch=master)](https://coveralls.io/github/FedericoMaggi/gonyan?branch=master)
+[![Coverage Status](https://coveralls.io/repos/github/FedericoMaggi/gonyan/badge.svg?branch=issue-1-create-readme)](https://coveralls.io/github/FedericoMaggi/gonyan?branch=issue-1-create-readme)
 
 
 The idea behind the package is to allow the creation of a logging utility capable of sending machine readable logs to different targets (called _Streams_) based on the desired logging level.

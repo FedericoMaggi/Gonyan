@@ -40,7 +40,7 @@ func TestDeserialise(t *testing.T) {
 		t.Fatalf("Unexpected Timestamp found. Expected: %d - Found: %d", 1483439014000000200, logMessage.Timestamp)
 	}
 
-	date := time.Unix(0, logMessage.Timestamp)
+	date := time.Unix(0, logMessage.Timestamp).UTC()
 	if date.Day() != 3 {
 		t.Fatalf("Unexpected Timestamp Day found. Expected: %d - Found: %d", 3, date.Day())
 	}
@@ -50,8 +50,8 @@ func TestDeserialise(t *testing.T) {
 	if date.Year() != 2017 {
 		t.Fatalf("Unexpected Timestamp Year found. Expected: %d - Found: %d", 2017, date.Year())
 	}
-	if date.Hour() != 11 {
-		t.Fatalf("Unexpected Timestamp Hour found. Expected: %d - Found: %d", 11, date.Hour())
+	if date.Hour() != 10 {
+		t.Fatalf("Unexpected Timestamp Hour found. Expected: %d - Found: %d", 10, date.Hour())
 	}
 	if date.Minute() != 23 {
 		t.Fatalf("Unexpected Timestamp Minute found. Expected: %d - Found: %d", 23, date.Minute())

@@ -4,7 +4,11 @@ go:
   - 1.8.x
   - 1.9.x
   - tip
+install:
+  - go get code.google.com/p/go.tools/cmd/cover
+  - go get github.com/mattn/goveralls
 env:
-  - GOMAXPROCS=4 GORACE=halt_on_error=1
+  secure: dWErm9ZybudwvqbDtgogRMvHbHWL/zPFQ/IIMaRiTW8ARdamMpB+aNWKF+kNehlP6IYdHY1Nb/ilg/VU8KERpXMtmW7lhss6taZi6aLCvqule8zJTI5892EybVijqz5KFvj2z+Gs0Q9c+xCrWa+cYc50MylSI8sUL3UihvC/+hmX+fjQuETW6G/Vg9pseuIJOfheOBS6HvsVYPHLC8VPdsw+f7WiG8i8nzUWAclaSR+fEh1XjXe4OWk8v1RP6v8cJt/NiFeaIOqzu/TVhU6hBUUDmd/2t/OGecaL3t+zBLL1fjBR5H6CnEMIb3+ap/c36UbQv9SikWQi2uM9v/A/rOpNVvi6L6U8LkSc5kuOwAP8xadsXOuvIrrAJWae9LDRu5Aua5EXsonPY9wz6FMXK15tYQc9Ita6RTl550eRUNqtL6AqJ1fNtnhWO8EcLKT52Co9zTk1CJIHIOcLJgF+DGsI8BAwRejOyIhKCZX/Knpt3htZ/gGHXd+chxQoWWCxVgKVWoWxhJ0bre45OtJqw8ImLHyMxSWsemntOIKxqH5/S2enjDmYgzPNoGAY6oWwgTCmJi4olIL5scQ8KQluaVR3S6J4GSKlQLH+2tYQQ8nFkpQoRb5voIjU1idyX0UVQBWgwsI/YIIdunrrKxOUCkINfhNavM1/AEltAcemLxc=
 script:
-  - go test -race -v ./...
+  - go test -race -v -covermode=count -coverprofile=coverage.out
+  - $(go env GOPATH | awk 'BEGIN{FS=":"} {print $1}')/bin/goveralls -coverprofile=coverage.out -service=travis-ci -repotoken $COVERALLS_TOKEN

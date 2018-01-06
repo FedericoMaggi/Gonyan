@@ -42,7 +42,7 @@ Also, each logging level can have multiple stream registered and custom streams 
 
 > Yeah, but what is a stream?
 
-A stream is whatever `struct` that has the function `Write([]byte) (int, error)` this choice allows Gonyan to natively support many `I/O` structures (e.g. `File`, `bytes.Buffer`, `bufio.Writer`, etc..) and being agnostic regarding where the log will be actually used. 
+A stream is whatever `struct` that implements the function `Write([]byte) (int, error)` this choice allows Gonyan to natively support many `I/O` structures (e.g. `File`, `bytes.Buffer`, `bufio.Writer`, etc..) and being agnostic regarding where the log will be actually used. 
 
 With time, many streams will be provided out-of-the-box but everyone can create its own custom stream object and transparently provide it to the Gonyan logger.
  

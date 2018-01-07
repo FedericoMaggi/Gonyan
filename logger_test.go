@@ -73,10 +73,10 @@ func TestLoggerClearMetadata(t *testing.T) {
 	}
 }
 
-// TestLoggerStreamsProperLogData verifies that the logger sends,
-// for all stream types all information with and without metadata.
-func TestLoggerStreamsProperLogData(t *testing.T) {
-	l := NewLogger("TestLoggerStreamsProperLogData", false)
+// TestLoggerStreamsProperLogDataForDebug verifies that the logger
+// sends all information with and without metadata for Debug stream.
+func TestLoggerStreamsProperLogDataForDebug(t *testing.T) {
+	l := NewLogger("TestLoggerStreamsProperLogDataForDebug", false)
 
 	stream := newMockStream(1)
 	l.RegisterStream(Debug, stream)
@@ -84,7 +84,7 @@ func TestLoggerStreamsProperLogData(t *testing.T) {
 	l.Debugf("Hi %s", "there")
 
 	message := <-stream.out
-	expected := `{"tag":"TestLoggerStreamsProperLogData","message":"Hi there"}`
+	expected := `{"tag":"TestLoggerStreamsProperLogDataForDebug","message":"Hi there"}`
 	if message != expected {
 		t.Fatalf("Unexpected message received from stream. Expected: `%s`, found: `%s`", expected, message)
 	}
@@ -93,7 +93,137 @@ func TestLoggerStreamsProperLogData(t *testing.T) {
 	l.Debugf("this log should have metadata")
 
 	message = <-stream.out
-	expected = `{"tag":"TestLoggerStreamsProperLogData","message":"this log should have metadata","metadata":{"custom":"field"}}`
+	expected = `{"tag":"TestLoggerStreamsProperLogDataForDebug","message":"this log should have metadata","metadata":{"custom":"field"}}`
+	if message != expected {
+		t.Fatalf("Unexpected message received from stream. Expected: `%s`, found: `%s`", expected, message)
+	}
+}
+
+// TestLoggerStreamsProperLogDataForVerbose verifies that the logger
+// sends all information with and without metadata for Verbose stream.
+func TestLoggerStreamsProperLogDataForVerbose(t *testing.T) {
+	l := NewLogger("TestLoggerStreamsProperLogDataForVerbose", false)
+
+	stream := newMockStream(1)
+	l.RegisterStream(Verbose, stream)
+
+	l.Verbose("Hi there")
+
+	message := <-stream.out
+	expected := `{"tag":"TestLoggerStreamsProperLogDataForVerbose","message":"Hi there"}`
+	if message != expected {
+		t.Fatalf("Unexpected message received from stream. Expected: `%s`, found: `%s`", expected, message)
+	}
+
+	l.SetMetadata(map[string]string{"custom": "field"})
+	l.Verbosef("this log should have metadata")
+
+	message = <-stream.out
+	expected = `{"tag":"TestLoggerStreamsProperLogDataForVerbose","message":"this log should have metadata","metadata":{"custom":"field"}}`
+	if message != expected {
+		t.Fatalf("Unexpected message received from stream. Expected: `%s`, found: `%s`", expected, message)
+	}
+}
+
+// TestLoggerStreamsProperLogDataForInfo verifies that the logger
+// sends all information with and without metadata for Info stream.
+func TestLoggerStreamsProperLogDataForInfo(t *testing.T) {
+	l := NewLogger("TestLoggerStreamsProperLogDataForInfo", false)
+
+	stream := newMockStream(1)
+	l.RegisterStream(Info, stream)
+
+	l.Info("Hi there")
+
+	message := <-stream.out
+	expected := `{"tag":"TestLoggerStreamsProperLogDataForInfo","message":"Hi there"}`
+	if message != expected {
+		t.Fatalf("Unexpected message received from stream. Expected: `%s`, found: `%s`", expected, message)
+	}
+
+	l.SetMetadata(map[string]string{"custom": "field"})
+	l.Infof("this log should have metadata")
+
+	message = <-stream.out
+	expected = `{"tag":"TestLoggerStreamsProperLogDataForInfo","message":"this log should have metadata","metadata":{"custom":"field"}}`
+	if message != expected {
+		t.Fatalf("Unexpected message received from stream. Expected: `%s`, found: `%s`", expected, message)
+	}
+}
+
+// TestLoggerStreamsProperLogDataForWarning verifies that the logger
+// sends all information with and without metadata for Warning stream.
+func TestLoggerStreamsProperLogDataForWarning(t *testing.T) {
+	l := NewLogger("TestLoggerStreamsProperLogDataForWarning", false)
+
+	stream := newMockStream(1)
+	l.RegisterStream(Warning, stream)
+
+	l.Warning("Hi there")
+
+	message := <-stream.out
+	expected := `{"tag":"TestLoggerStreamsProperLogDataForWarning","message":"Hi there"}`
+	if message != expected {
+		t.Fatalf("Unexpected message received from stream. Expected: `%s`, found: `%s`", expected, message)
+	}
+
+	l.SetMetadata(map[string]string{"custom": "field"})
+	l.Warningf("this log should have metadata")
+
+	message = <-stream.out
+	expected = `{"tag":"TestLoggerStreamsProperLogDataForWarning","message":"this log should have metadata","metadata":{"custom":"field"}}`
+	if message != expected {
+		t.Fatalf("Unexpected message received from stream. Expected: `%s`, found: `%s`", expected, message)
+	}
+}
+
+// TestLoggerStreamsProperLogDataForError verifies that the logger
+// sends all information with and without metadata for Error stream.
+func TestLoggerStreamsProperLogDataForError(t *testing.T) {
+	l := NewLogger("TestLoggerStreamsProperLogDataForError", false)
+
+	stream := newMockStream(1)
+	l.RegisterStream(Error, stream)
+
+	l.Error("Hi there")
+
+	message := <-stream.out
+	expected := `{"tag":"TestLoggerStreamsProperLogDataForError","message":"Hi there"}`
+	if message != expected {
+		t.Fatalf("Unexpected message received from stream. Expected: `%s`, found: `%s`", expected, message)
+	}
+
+	l.SetMetadata(map[string]string{"custom": "field"})
+	l.Errorf("this log should have metadata")
+
+	message = <-stream.out
+	expected = `{"tag":"TestLoggerStreamsProperLogDataForError","message":"this log should have metadata","metadata":{"custom":"field"}}`
+	if message != expected {
+		t.Fatalf("Unexpected message received from stream. Expected: `%s`, found: `%s`", expected, message)
+	}
+}
+
+// TestLoggerStreamsProperLogDataForFatal verifies that the logger
+// sends all information with and without metadata for Fatal stream.
+func TestLoggerStreamsProperLogDataForFatal(t *testing.T) {
+	l := NewLogger("TestLoggerStreamsProperLogDataForFatal", false)
+
+	stream := newMockStream(1)
+	l.RegisterStream(Fatal, stream)
+
+	l.Fatal("Hi there")
+
+	message := <-stream.out
+	expected := `{"tag":"TestLoggerStreamsProperLogDataForFatal","message":"Hi there"}`
+	if message != expected {
+		t.Fatalf("Unexpected message received from stream. Expected: `%s`, found: `%s`", expected, message)
+	}
+
+	l.SetMetadata(map[string]string{"custom": "field"})
+	l.Fatalf("this log should have metadata")
+
+	message = <-stream.out
+	expected = `{"tag":"TestLoggerStreamsProperLogDataForFatal","message":"this log should have metadata","metadata":{"custom":"field"}}`
 	if message != expected {
 		t.Fatalf("Unexpected message received from stream. Expected: `%s`, found: `%s`", expected, message)
 	}

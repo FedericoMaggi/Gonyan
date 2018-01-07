@@ -49,7 +49,7 @@ func (l *Logger) RegisterStream(level LogLevel, stream Stream) {
 // The function accepts a format and a variadic number of arguments
 // to compose the final log data.
 func (l *Logger) Debugf(format string, args ...interface{}) {
-	l.Debug(fmt.Sprintf(format, args))
+	l.Debug(fmt.Sprintf(format, args...))
 }
 
 // Debug logs provided message into registered debug level streams.
@@ -61,7 +61,7 @@ func (l *Logger) Debug(message string) {
 // The function accepts a format and a variadic number of arguments
 // to compose the final log data.
 func (l *Logger) Verbosef(format string, args ...interface{}) {
-	l.Verbose(fmt.Sprintf(format, args))
+	l.Verbose(fmt.Sprintf(format, args...))
 }
 
 // Verbose logs provided message into registered verbose level streams.
@@ -73,7 +73,7 @@ func (l *Logger) Verbose(message string) {
 // The function accepts a format and a variadic number of arguments
 // to compose the final log data.
 func (l *Logger) Infof(format string, args ...interface{}) {
-	l.Info(fmt.Sprintf(format, args))
+	l.Info(fmt.Sprintf(format, args...))
 }
 
 // Info logs provided message into info level streams.
@@ -85,7 +85,7 @@ func (l *Logger) Info(message string) {
 // The function accepts a format and a variadic number of arguments
 // to compose the final log data.
 func (l *Logger) Warningf(format string, args ...interface{}) {
-	l.Warning(fmt.Sprintf(format, args))
+	l.Warning(fmt.Sprintf(format, args...))
 }
 
 // Warning logs provided message into warning level streams.
@@ -97,7 +97,7 @@ func (l *Logger) Warning(message string) {
 // The function accepts a format and a variadic number of arguments
 // to compose the final log data.
 func (l *Logger) Errorf(format string, args ...interface{}) {
-	l.Error(fmt.Sprintf(format, args))
+	l.Error(fmt.Sprintf(format, args...))
 }
 
 // Error logs provided message into error level streams.
@@ -109,7 +109,7 @@ func (l *Logger) Error(message string) {
 // The function accepts a format and a variadic number of arguments
 // to compose the final log data.
 func (l *Logger) Fatalf(format string, args ...interface{}) {
-	l.Fatal(fmt.Sprintf(format, args))
+	l.Fatal(fmt.Sprintf(format, args...))
 }
 
 // Fatal logs provided message into fatal level streams.
@@ -122,7 +122,7 @@ func (l *Logger) Fatal(message string) {
 // to compose the final log data.
 // Note: When log is performed panic() is invoked.
 func (l *Logger) Panicf(format string, args ...interface{}) {
-	l.Fatal(fmt.Sprintf(format, args))
+	l.Fatal(fmt.Sprintf(format, args...))
 }
 
 // Panic logs provided message into panic level streams.
@@ -136,7 +136,7 @@ func (l *Logger) Panic(message string) {
 // The function accepts a format and a variadic number of arguments
 // to compose the final log data.
 func (l *Logger) Logf(level LogLevel, format string, args ...interface{}) {
-	l.Logf(level, fmt.Sprintf(format, args))
+	l.Logf(level, fmt.Sprintf(format, args...))
 }
 
 // Log function builds the final JSON message and sends it to the correct streams.

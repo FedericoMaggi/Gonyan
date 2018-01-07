@@ -7,7 +7,7 @@ type LogLevel int
 //
 //  * Debug
 //  * Verbose
-// 	* Info
+//  * Info
 //  * Warning
 //  * Error
 //  * Fatal

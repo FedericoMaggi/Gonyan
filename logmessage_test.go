@@ -6,9 +6,11 @@ import (
 	"time"
 )
 
+// TestSerialise verifies proper serialisation without
+// custom metadata fields.
 func TestSerialise(t *testing.T) {
 	date := time.Date(2017, time.January, 3, 10, 23, 34, 200, time.UTC).UnixNano()
-	logMessage := NewLogMessage("Test", date, "messagestring")
+	logMessage := NewLogMessage("Test", date, "messagestring", nil)
 	serialised, err := logMessage.Serialise()
 	if err != nil {
 		t.Fatalf("Unexpected error: %s", err.Error())
@@ -22,6 +24,30 @@ func TestSerialise(t *testing.T) {
 	}
 }
 
+// TestSerialiseWithMetadata verifies proper serialisation with
+// custom metadata fields.
+func TestSerialiseWithMetadata(t *testing.T) {
+	metadata := map[string]string{
+		"custom": "field",
+	}
+
+	date := time.Date(2017, time.January, 3, 10, 23, 34, 200, time.UTC).UnixNano()
+	logMessage := NewLogMessage("Test", date, "messagestring", metadata)
+	serialised, err := logMessage.Serialise()
+	if err != nil {
+		t.Fatalf("Unexpected error: %s", err.Error())
+	}
+	if serialised == nil {
+		t.Fatalf("Serialised is nil")
+	}
+
+	expected := `{"tag":"Test","timestamp":1483439014000000200,"message":"messagestring","metadata":{"custom":"field"}}`
+	if bytes.Compare(serialised, []byte(expected)) != 0 {
+		t.Fatalf("Serialisation error, unexpected serialised log: %s", serialised)
+	}
+}
+
+// TestDeserialise verifies proper LogMessage deserialisation.
 func TestDeserialise(t *testing.T) {
 	serialised := []byte(`{"tag":"Test","timestamp":1483439014000000200,"message":"messagestring"}`)
 	logMessage, err := Deserialise(serialised)
@@ -61,5 +87,19 @@ func TestDeserialise(t *testing.T) {
 	}
 	if date.Nanosecond() != 200 {
 		t.Fatalf("Unexpected Timestamp Nanosecond found. Expected: %d - Found: %d", 200, date.Nanosecond())
+	}
+}
+
+// TestDeserialisationFailure verifies that, if provided an invalid
+// LogMessage, the Deserialisation function correctly fails.
+func TestDeserialisationFailure(t *testing.T) {
+	// Invalid JSON format.
+	input := "{this-is-not-a-json}"
+	message, err := Deserialise([]byte(input))
+	if message != nil {
+		t.Fatalf("Deserialisation should have returned nil => %+v", message)
+	}
+	if err == nil {
+		t.Fatalf("Deserialisation should have failed for input: `%s`", input)
 	}
 }

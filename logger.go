@@ -3,7 +3,6 @@ package gonyan
 
 import (
 	"fmt"
-	"sync"
 	"time"
 )
 
@@ -11,22 +10,33 @@ import (
 // streams to log to and a few useful settings to customise the logs such as
 // custom tag, metadata and timestamp.
 type Logger struct {
-	mutex     *sync.Mutex
 	tag       string
-	metadata  map[string]string
 	timestamp bool
 	streams   *StreamManager
+	metadata  map[string]string
 }
 
 // NewLogger creates a new logger instance with provided configuration.
-func NewLogger(tag string, metadata map[string]string, timestamp bool) *Logger {
+func NewLogger(tag string, timestamp bool) *Logger {
 	logger := &Logger{
 		tag:       tag,
-		mutex:     &sync.Mutex{},
 		timestamp: timestamp,
 		streams:   NewStreamManager(),
 	}
 	return logger
+}
+
+// SetMetadata sets the optional metadata values for this logger.
+// Metadata will be added to each log streamed from the logger instace.
+func (l *Logger) SetMetadata(metadata map[string]string) {
+	if metadata != nil {
+		l.metadata = metadata
+	}
+}
+
+// ClearMetadata clears the optional metadata from the logger instance.
+func (l *Logger) ClearMetadata() {
+	l.metadata = nil
 }
 
 // RegisterStream register provided stream associating it with provided level
@@ -39,7 +49,7 @@ func (l *Logger) RegisterStream(level LogLevel, stream Stream) {
 // The function accepts a format and a variadic number of arguments
 // to compose the final log data.
 func (l *Logger) Debugf(format string, args ...interface{}) {
-	l.Debug(fmt.Sprintf(format, args))
+	l.Debug(fmt.Sprintf(format, args...))
 }
 
 // Debug logs provided message into registered debug level streams.
@@ -51,7 +61,7 @@ func (l *Logger) Debug(message string) {
 // The function accepts a format and a variadic number of arguments
 // to compose the final log data.
 func (l *Logger) Verbosef(format string, args ...interface{}) {
-	l.Verbose(fmt.Sprintf(format, args))
+	l.Verbose(fmt.Sprintf(format, args...))
 }
 
 // Verbose logs provided message into registered verbose level streams.
@@ -63,7 +73,7 @@ func (l *Logger) Verbose(message string) {
 // The function accepts a format and a variadic number of arguments
 // to compose the final log data.
 func (l *Logger) Infof(format string, args ...interface{}) {
-	l.Info(fmt.Sprintf(format, args))
+	l.Info(fmt.Sprintf(format, args...))
 }
 
 // Info logs provided message into info level streams.
@@ -75,7 +85,7 @@ func (l *Logger) Info(message string) {
 // The function accepts a format and a variadic number of arguments
 // to compose the final log data.
 func (l *Logger) Warningf(format string, args ...interface{}) {
-	l.Warning(fmt.Sprintf(format, args))
+	l.Warning(fmt.Sprintf(format, args...))
 }
 
 // Warning logs provided message into warning level streams.
@@ -87,19 +97,19 @@ func (l *Logger) Warning(message string) {
 // The function accepts a format and a variadic number of arguments
 // to compose the final log data.
 func (l *Logger) Errorf(format string, args ...interface{}) {
-	l.Error(fmt.Sprintf(format, args))
+	l.Error(fmt.Sprintf(format, args...))
 }
 
 // Error logs provided message into error level streams.
 func (l *Logger) Error(message string) {
-	l.Log(Warning, message)
+	l.Log(Error, message)
 }
 
 // Fatalf logs provided message into fatal level streams.
 // The function accepts a format and a variadic number of arguments
 // to compose the final log data.
 func (l *Logger) Fatalf(format string, args ...interface{}) {
-	l.Fatal(fmt.Sprintf(format, args))
+	l.Fatal(fmt.Sprintf(format, args...))
 }
 
 // Fatal logs provided message into fatal level streams.
@@ -112,7 +122,7 @@ func (l *Logger) Fatal(message string) {
 // to compose the final log data.
 // Note: When log is performed panic() is invoked.
 func (l *Logger) Panicf(format string, args ...interface{}) {
-	l.Fatal(fmt.Sprintf(format, args))
+	l.Fatal(fmt.Sprintf(format, args...))
 }
 
 // Panic logs provided message into panic level streams.
@@ -126,7 +136,7 @@ func (l *Logger) Panic(message string) {
 // The function accepts a format and a variadic number of arguments
 // to compose the final log data.
 func (l *Logger) Logf(level LogLevel, format string, args ...interface{}) {
-	l.Logf(level, fmt.Sprintf(format, args))
+	l.Logf(level, fmt.Sprintf(format, args...))
 }
 
 // Log function builds the final JSON message and sends it to the correct streams.
@@ -135,7 +145,8 @@ func (l *Logger) Log(level LogLevel, message string) {
 	if l.timestamp {
 		t = time.Now().UTC().UnixNano()
 	}
-	m := NewLogMessage(l.tag, t, message)
+
+	m := NewLogMessage(l.tag, t, message, l.metadata)
 
 	// Send message to streams via the StreamManager.
 	if err := l.streams.Send(level, m); err != nil {

@@ -31,6 +31,7 @@ func (m *LogMessage) Serialise() ([]byte, error) {
 	if err != nil {
 		return nil, fmt.Errorf("%s", err.Error())
 	}
+
 	return messageBytes, nil
 }
 

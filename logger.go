@@ -102,7 +102,7 @@ func (l *Logger) Errorf(format string, args ...interface{}) {
 
 // Error logs provided message into error level streams.
 func (l *Logger) Error(message string) {
-	l.Log(Warning, message)
+	l.Log(Error, message)
 }
 
 // Fatalf logs provided message into fatal level streams.

@@ -47,6 +47,7 @@ func TestSerialiseWithMetadata(t *testing.T) {
 	}
 }
 
+// TestDeserialise verifies proper LogMessage deserialisation.
 func TestDeserialise(t *testing.T) {
 	serialised := []byte(`{"tag":"Test","timestamp":1483439014000000200,"message":"messagestring"}`)
 	logMessage, err := Deserialise(serialised)
@@ -86,5 +87,19 @@ func TestDeserialise(t *testing.T) {
 	}
 	if date.Nanosecond() != 200 {
 		t.Fatalf("Unexpected Timestamp Nanosecond found. Expected: %d - Found: %d", 200, date.Nanosecond())
+	}
+}
+
+// TestDeserialisationFailure verifies that, if provided an invalid
+// LogMessage, the Deserialisation function correctly fails.
+func TestDeserialisationFailure(t *testing.T) {
+	// Invalid JSON format.
+	input := "{this-is-not-a-json}"
+	message, err := Deserialise([]byte(input))
+	if message != nil {
+		t.Fatalf("Deserialisation should have returned nil => %+v", message)
+	}
+	if err == nil {
+		t.Fatalf("Deserialisation should have failed for input: `%s`", input)
 	}
 }

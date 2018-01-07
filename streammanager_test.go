@@ -207,5 +207,4 @@ func TestStreamManagerSend(t *testing.T) {
 	if err := manager.Send(Debug, sampleMessage); err != nil {
 		t.Fatalf("Unexpected error: %s", err.Error())
 	}
-
 }

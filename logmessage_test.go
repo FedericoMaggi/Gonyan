@@ -6,6 +6,8 @@ import (
 	"time"
 )
 
+// TestSerialise verifies proper serialisation without
+// custom metadata fields.
 func TestSerialise(t *testing.T) {
 	date := time.Date(2017, time.January, 3, 10, 23, 34, 200, time.UTC).UnixNano()
 	logMessage := NewLogMessage("Test", date, "messagestring", nil)
@@ -18,6 +20,29 @@ func TestSerialise(t *testing.T) {
 	}
 
 	if bytes.Compare(serialised, []byte(`{"tag":"Test","timestamp":1483439014000000200,"message":"messagestring"}`)) != 0 {
+		t.Fatalf("Serialisation error, unexpected serialised log: %s", serialised)
+	}
+}
+
+// TestSerialiseWithMetadata verifies proper serialisation with
+// custom metadata fields.
+func TestSerialiseWithMetadata(t *testing.T) {
+	metadata := map[string]string{
+		"custom": "field",
+	}
+
+	date := time.Date(2017, time.January, 3, 10, 23, 34, 200, time.UTC).UnixNano()
+	logMessage := NewLogMessage("Test", date, "messagestring", metadata)
+	serialised, err := logMessage.Serialise()
+	if err != nil {
+		t.Fatalf("Unexpected error: %s", err.Error())
+	}
+	if serialised == nil {
+		t.Fatalf("Serialised is nil")
+	}
+
+	expected := `{"tag":"Test","timestamp":1483439014000000200,"message":"messagestring","metadata":{"custom":"field"}}`
+	if bytes.Compare(serialised, []byte(expected)) != 0 {
 		t.Fatalf("Serialisation error, unexpected serialised log: %s", serialised)
 	}
 }

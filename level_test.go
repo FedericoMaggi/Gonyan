@@ -26,4 +26,7 @@ func TestGetLevelLabel(t *testing.T) {
 	if label := GetLevelLabel(Panic); label != "Panic" {
 		t.Fatalf("Invalid level label for Panic level found: %s", label)
 	}
+	if label := GetLevelLabel(LogLevel(-999)); label != "" {
+		t.Fatalf("Label returned with invalid level value")
+	}
 }

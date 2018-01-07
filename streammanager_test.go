@@ -192,7 +192,7 @@ func TestStreamManagerSend(t *testing.T) {
 	manager := NewStreamManager()
 	stream := newMockStream(1)
 
-	sampleMessage := NewLogMessage("TestSend", 0, "the-message")
+	sampleMessage := NewLogMessage("TestSend", 0, "the-message", nil)
 
 	if err := manager.Send(Debug, nil); err == nil {
 		t.Fatalf("Expected error for invalid nil message. Found nil instead.")

@@ -3,7 +3,6 @@ package gonyan
 
 import (
 	"fmt"
-	"sync"
 	"time"
 )
 
@@ -11,22 +10,33 @@ import (
 // streams to log to and a few useful settings to customise the logs such as
 // custom tag, metadata and timestamp.
 type Logger struct {
-	mutex     *sync.Mutex
 	tag       string
-	metadata  map[string]string
 	timestamp bool
 	streams   *StreamManager
+	metadata  map[string]string
 }
 
 // NewLogger creates a new logger instance with provided configuration.
-func NewLogger(tag string, metadata map[string]string, timestamp bool) *Logger {
+func NewLogger(tag string, timestamp bool) *Logger {
 	logger := &Logger{
 		tag:       tag,
-		mutex:     &sync.Mutex{},
 		timestamp: timestamp,
 		streams:   NewStreamManager(),
 	}
 	return logger
+}
+
+// SetMetadata sets the optional metadata values for this logger.
+// Metadata will be added to each log streamed from the logger instace.
+func (l *Logger) SetMetadata(metadata map[string]string) {
+	if metadata != nil {
+		l.metadata = metadata
+	}
+}
+
+// ClearMetadata clears the optional metadata from the logger instance.
+func (l *Logger) ClearMetadata() {
+	l.metadata = nil
 }
 
 // RegisterStream register provided stream associating it with provided level
@@ -135,7 +145,8 @@ func (l *Logger) Log(level LogLevel, message string) {
 	if l.timestamp {
 		t = time.Now().UTC().UnixNano()
 	}
-	m := NewLogMessage(l.tag, t, message)
+
+	m := NewLogMessage(l.tag, t, message, l.metadata)
 
 	// Send message to streams via the StreamManager.
 	if err := l.streams.Send(level, m); err != nil {

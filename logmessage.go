@@ -8,17 +8,19 @@ import (
 // LogMessage structure defines the basic standard object containing a message
 // to be logged via a stream implementation.
 type LogMessage struct {
-	Tag       string `json:"tag"`
-	Timestamp int64  `json:"timestamp,omitempty"`
-	Message   string `json:"message"`
+	Tag       string            `json:"tag"`
+	Timestamp int64             `json:"timestamp,omitempty"`
+	Message   string            `json:"message"`
+	Metadata  map[string]string `json:"metadata,omitempty"`
 }
 
 // NewLogMessage builds a new LogMessage and returns its reference.
-func NewLogMessage(tag string, timestamp int64, message string) *LogMessage {
+func NewLogMessage(tag string, timestamp int64, message string, metadata map[string]string) *LogMessage {
 	return &LogMessage{
 		Tag:       tag,
 		Timestamp: timestamp,
 		Message:   message,
+		Metadata:  metadata,
 	}
 }
 

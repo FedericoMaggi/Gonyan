@@ -8,7 +8,7 @@ import (
 
 func TestSerialise(t *testing.T) {
 	date := time.Date(2017, time.January, 3, 10, 23, 34, 200, time.UTC).UnixNano()
-	logMessage := NewLogMessage("Test", date, "messagestring")
+	logMessage := NewLogMessage("Test", date, "messagestring", nil)
 	serialised, err := logMessage.Serialise()
 	if err != nil {
 		t.Fatalf("Unexpected error: %s", err.Error())

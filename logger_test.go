@@ -9,7 +9,7 @@ import (
 // file is compatible with current Stream implementation.
 // TODO: Capture stdout content to verify correct logging.
 func TestNewLoggerWithStdout(t *testing.T) {
-	l := NewLogger("TestNewLoggerWithStdout", nil, false)
+	l := NewLogger("TestNewLoggerWithStdout", false)
 	l.RegisterStream(Debug, os.Stdout)
 
 	// Expected log is:
@@ -21,7 +21,7 @@ func TestNewLoggerWithStdout(t *testing.T) {
 // file is compatible with current Stream implementation.
 // TODO: Capture stderr content to verify correct logging.
 func TestNewLoggerWithStderr(t *testing.T) {
-	l := NewLogger("TestNewLoggerWithStderr", nil, true)
+	l := NewLogger("TestNewLoggerWithStderr", true)
 	l.RegisterStream(Error, os.Stderr)
 
 	// Expected log is:

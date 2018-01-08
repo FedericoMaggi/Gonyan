@@ -19,7 +19,7 @@ type Stream struct {
 // NewStream creates a new HTTP stream and sets its webhook URL.
 func NewStream(url string) *Stream {
 	return &Stream{
-		method:      http.MethodGet,
+		method:      http.MethodPost,
 		url:         url,
 		useHTTPS:    false,
 		prepareBody: nil,
@@ -78,21 +78,23 @@ func (h *Stream) Write(messageBytes []byte) (int, error) {
 		}
 	}
 
-	go func() {
+	go func(body []byte) {
 		// TODO: Handle request in a better way.
 		if err := h.fireRequest(body); err != nil {
 			fmt.Printf("[Gonyan] [Stream] request firing failed due to: %s.\nRequest body: %+v", err.Error(), body)
 			return
 		}
-	}()
+	}(body)
 
 	return len(body), nil
 }
 
 // fireRequest function will create and execute the actual HTTP request putting
 // together all setup information, headers etc.
-func (h *Stream) fireRequest(body []byte) error {
-	request, err := http.NewRequest(h.method, h.url, bytes.NewBuffer(body))
+// The expected input is the previously prepared body (if a prepare function is
+// provided).
+func (h *Stream) fireRequest(preparedBody []byte) error {
+	request, err := http.NewRequest(h.method, h.url, bytes.NewBuffer(preparedBody))
 	if err != nil {
 		return fmt.Errorf("request creation failed due to: %s", err.Error())
 	}

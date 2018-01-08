@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"reflect"
+	"sync"
 	"testing"
 	"time"
 )
@@ -252,6 +253,7 @@ func TestFireRequestFailure(t *testing.T) {
 // TestWriteSuccess successfully uses Write stream entrypoint.
 func TestWriteSuccess(t *testing.T) {
 	timedout := true
+	mtx := &sync.Mutex{}
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
 		if r.Method != http.MethodPut {
@@ -276,7 +278,9 @@ func TestWriteSuccess(t *testing.T) {
 			w.Write(nil)
 			t.Fatalf("Unexpected payload bytes found. Expected: %+v - Found: %+v.", []byte("hey ho"), payload)
 		}
+		mtx.Lock()
 		timedout = false
+		mtx.Unlock()
 		w.Write(nil)
 	}))
 	defer ts.Close()
@@ -300,7 +304,11 @@ func TestWriteSuccess(t *testing.T) {
 
 	// Sleep a bit to let the handler process the request.
 	time.Sleep(5 * time.Second)
-	if timedout {
+
+	mtx.Lock()
+	willfail := timedout
+	mtx.Unlock()
+	if willfail {
 		t.Fatalf("No successful request was received by the test handler and it timed out.")
 	}
 }

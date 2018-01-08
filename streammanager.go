@@ -9,7 +9,8 @@ type StreamManager struct {
 	streams map[LogLevel][]Stream
 }
 
-// NewStreamManager creates a new, properly initialised, StreamManager instance.
+// NewStreamManager creates a new, properly initialised,
+// StreamManager instance.
 func NewStreamManager() *StreamManager {
 	s := &StreamManager{}
 	s.streams = make(map[LogLevel][]Stream)
@@ -24,7 +25,7 @@ func NewStreamManager() *StreamManager {
 	return s
 }
 
-// Register internally saves provided stream into proper container.
+// Register internally saves provided stream into proper stream container.
 func (s *StreamManager) Register(level LogLevel, stream Stream) error {
 	registeredStreams, ok := s.streams[level]
 	if !ok {
@@ -36,7 +37,13 @@ func (s *StreamManager) Register(level LogLevel, stream Stream) error {
 	return nil
 }
 
-// Send fires stream writes for provided LogMessage into proper streams.
+// Send function fires stream writes operations for provided LogMessage
+// into all streams registered from provided LogLevel.
+//
+// Note: all Write invocations are performed synchronously to avoid spawning
+// too much go-routines, the Stream is in charge of implementing asynchronous
+// mechanisms to avoid waiting too much on a log operation.
+// This might change in the future depending on how the package itself grows.
 func (s *StreamManager) Send(level LogLevel, message *LogMessage) error {
 	if message == nil {
 		return fmt.Errorf("invalid nil message")

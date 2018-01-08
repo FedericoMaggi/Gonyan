@@ -6,6 +6,7 @@ import (
 	"bytes"
 	"fmt"
 	"net/http"
+	"net/url"
 )
 
 // Stream defines the standard Gonyan Stream for HTTP and HTTPS requests.
@@ -90,12 +91,29 @@ func (h *Stream) RemoveHeader(key string) {
 	delete(h.headers, key)
 }
 
+// SetAllQueryParams sets provided key-value pairs for later usage
+// as HTTP Query parameters.
+// Note: the method will return the same instance of the invoked structure
+// so that multiple `Set` functions can be chained together.
+func (h *Stream) SetAllQueryParams(queryParams map[string]string) *Stream {
+	h.queryParams = queryParams
+	return h
+}
+
 // SetQueryParam sets provided key-value pair for later usage
 // as HTTP Query parameters.
 // Note: the method will return the same instance of the invoked structure
 // so that multiple `Set` functions can be chained together.
 func (h *Stream) SetQueryParam(key, value string) *Stream {
+	h.queryParams[key] = value
 	return h
+}
+
+// RemoveQueryParam removes provided key-value pair from HTTP Query parameters.
+// Note: the method will return the same instance of the invoked structure
+// so that multiple `Set` functions can be chained together.
+func (h *Stream) RemoveQueryParam(key string) {
+	delete(h.queryParams, key)
 }
 
 // Write function defined to implement the Stream interface.
@@ -129,7 +147,18 @@ func (h *Stream) Write(messageBytes []byte) (int, error) {
 // The expected input is the previously prepared body (if a prepare function is
 // provided).
 func (h *Stream) fireRequest(preparedBody []byte) error {
-	request, err := http.NewRequest(h.method, h.url, bytes.NewBuffer(preparedBody))
+	targetURL := h.url
+
+	// Prepare GET Query parameters for GET method.
+	if h.method == http.MethodGet {
+		getParams := url.Values{}
+		for key, val := range h.queryParams {
+			getParams.Add(key, val)
+		}
+		targetURL += "?" + getParams.Encode()
+	}
+
+	request, err := http.NewRequest(h.method, targetURL, bytes.NewBuffer(preparedBody))
 	if err != nil {
 		return fmt.Errorf("request creation failed due to: %s", err.Error())
 	}

@@ -126,6 +126,59 @@ func TestRemoveHeader(t *testing.T) {
 	}
 }
 
+// TestSetAllQueryParams verifies that SetAllQueryParams function works as expected.
+func TestSetAllQueryParams(t *testing.T) {
+	s := NewStream("")
+
+	params := map[string]string{
+		"hey":  "ho",
+		"lets": "go",
+	}
+	s.SetAllQueryParams(params)
+	if !reflect.DeepEqual(params, s.queryParams) {
+		t.Fatalf("Unexpected params map. Expected: %+v - Found: %+v", params, s.queryParams)
+	}
+}
+
+// TestSetQueryParams verifies that SetQueryParams function works as expected.
+func TestSetQueryParams(t *testing.T) {
+	s := NewStream("")
+
+	s.SetQueryParam("hey", "oh")
+	val, ok := s.queryParams["hey"]
+	if !ok {
+		t.Fatalf("The key-pair should exist!")
+	}
+	if val != "oh" {
+		t.Fatalf("Unexpected value found. Expected: `%s` - Found: `%s`.", "oh", val)
+	}
+}
+
+// TestRemoveQueryParam verifies that RemoveQueryParam function works as expected.
+func TestRemoveQueryParam(t *testing.T) {
+	s := NewStream("")
+
+	params := map[string]string{
+		"hey":  "ho",
+		"lets": "go",
+	}
+	s.SetAllQueryParams(params)
+	if !reflect.DeepEqual(params, s.queryParams) {
+		t.Fatalf("Unexpected params map. Expected: %+v - Found: %+v", params, s.queryParams)
+	}
+
+	s.RemoveQueryParam("NOT PRESENT")
+
+	s.RemoveQueryParam("hey")
+	val, ok := s.queryParams["lets"]
+	if !ok {
+		t.Fatalf("The key-pair should exist!")
+	}
+	if val != "go" {
+		t.Fatalf("Unexpected value found. Expected: `%s` - Found: `%s`.", "go", val)
+	}
+}
+
 // TestFireRequest successfully fires an HTTP PUT request.
 func TestFireRequest(t *testing.T) {
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {

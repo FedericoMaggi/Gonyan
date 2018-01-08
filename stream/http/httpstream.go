@@ -8,17 +8,17 @@ import (
 	"net/http"
 )
 
-// HTTPStream defines the standard Gonyan Stream for HTTP and HTTPS requests.
-type HTTPStream struct {
+// Stream defines the standard Gonyan Stream for HTTP and HTTPS requests.
+type Stream struct {
 	method      string
 	url         string
 	useHTTPS    bool
 	prepareBody func([]byte) ([]byte, error)
 }
 
-// NewHTTPStream creates a new HTTP stream and sets its webhook URL.
-func NewHTTPStream(url string) *HTTPStream {
-	return &HTTPStream{
+// NewStream creates a new HTTP stream and sets its webhook URL.
+func NewStream(url string) *Stream {
+	return &Stream{
 		method:      http.MethodGet,
 		url:         url,
 		useHTTPS:    false,
@@ -29,8 +29,8 @@ func NewHTTPStream(url string) *HTTPStream {
 // SetMethod allows to define the HTTP method to be used by the stream.
 // By default it'll perform a POST request but other methods are supported.
 // Note: the method will return the same instance of the invoked structure
-// so that multiple `Set`` functions can be chained together.
-func (h *HTTPStream) SetMethod(method string) *HTTPStream {
+// so that multiple `Set` functions can be chained together.
+func (h *Stream) SetMethod(method string) *Stream {
 	h.method = method
 	return h
 }
@@ -39,8 +39,8 @@ func (h *HTTPStream) SetMethod(method string) *HTTPStream {
 // function in order to apply custom operation on the body prior its
 // transmission to the HTTP endpoint.
 // Note: the method will return the same instance of the invoked structure
-// so that multiple `Set`` functions can be chained together.
-func (h *HTTPStream) SetCustomBodyPrepareFunction(f func([]byte) ([]byte, error)) *HTTPStream {
+// so that multiple `Set` functions can be chained together.
+func (h *Stream) SetCustomBodyPrepareFunction(f func([]byte) ([]byte, error)) *Stream {
 	h.prepareBody = f
 	return h
 }
@@ -48,8 +48,8 @@ func (h *HTTPStream) SetCustomBodyPrepareFunction(f func([]byte) ([]byte, error)
 // DisableHTTPS will set the internal flag for HTTPS to `false`
 // thus disabling it; note that HTTPS is disabled by default.
 // Note: the method will return the same instance of the invoked structure
-// so that multiple `Set`` functions can be chained together.
-func (h *HTTPStream) DisableHTTPS() *HTTPStream {
+// so that multiple `Set` functions can be chained together.
+func (h *Stream) DisableHTTPS() *Stream {
 	h.useHTTPS = false
 	return h
 }
@@ -57,8 +57,8 @@ func (h *HTTPStream) DisableHTTPS() *HTTPStream {
 // EnableHTTPS will set the internal flag for HTTPS to `true` thus enabling it.
 // HTTPS is disabled by default.
 // Note: the method will return the same instance of the invoked structure
-// so that multiple `Set`` functions can be chained together.
-func (h *HTTPStream) EnableHTTPS() *HTTPStream {
+// so that multiple `Set` functions can be chained together.
+func (h *Stream) EnableHTTPS() *Stream {
 	h.useHTTPS = true
 	return h
 }
@@ -68,7 +68,7 @@ func (h *HTTPStream) EnableHTTPS() *HTTPStream {
 // using (optionally provided) headers and GET query parameters.
 // Note: the actual HTTP request is performed inside a simple goroutine, it
 // will be optimised in the future.
-func (h *HTTPStream) Write(messageBytes []byte) (int, error) {
+func (h *Stream) Write(messageBytes []byte) (int, error) {
 	body := messageBytes
 	if h.prepareBody != nil {
 		var err error
@@ -81,7 +81,7 @@ func (h *HTTPStream) Write(messageBytes []byte) (int, error) {
 	go func() {
 		// TODO: Handle request in a better way.
 		if err := h.fireRequest(body); err != nil {
-			fmt.Printf("[Gonyan] [HTTPStream] request firing failed due to: %s.\nRequest body: %+v", err.Error(), body)
+			fmt.Printf("[Gonyan] [Stream] request firing failed due to: %s.\nRequest body: %+v", err.Error(), body)
 			return
 		}
 	}()
@@ -91,7 +91,7 @@ func (h *HTTPStream) Write(messageBytes []byte) (int, error) {
 
 // fireRequest function will create and execute the actual HTTP request putting
 // together all setup information, headers etc.
-func (h *HTTPStream) fireRequest(body []byte) error {
+func (h *Stream) fireRequest(body []byte) error {
 	request, err := http.NewRequest(h.method, h.url, bytes.NewBuffer(body))
 	if err != nil {
 		return fmt.Errorf("request creation failed due to: %s", err.Error())

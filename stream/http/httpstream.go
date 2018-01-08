@@ -15,6 +15,7 @@ type Stream struct {
 	useHTTPS    bool                         // Flag to activate TLS/SSL;
 	prepareBody func([]byte) ([]byte, error) // Function executed on body before transmission;
 	headers     map[string]string            // HTTP headers container;
+	queryParams map[string]string            // GET query parameter container.
 }
 
 // NewStream creates a new HTTP stream and sets its webhook URL.
@@ -25,6 +26,7 @@ func NewStream(url string) *Stream {
 		useHTTPS:    false,
 		prepareBody: nil,
 		headers:     make(map[string]string),
+		queryParams: make(map[string]string),
 	}
 }
 

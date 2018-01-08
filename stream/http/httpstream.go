@@ -134,7 +134,10 @@ func (h *Stream) fireRequest(preparedBody []byte) error {
 		return fmt.Errorf("request creation failed due to: %s", err.Error())
 	}
 
-	// request.Header.Add
+	// Add all headers to request.
+	for key, val := range h.headers {
+		request.Header.Add(key, val)
+	}
 
 	client := &http.Client{}
 	response, err := client.Do(request)

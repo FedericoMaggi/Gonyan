@@ -72,6 +72,59 @@ func TestEnableAndDisableHTTPS(t *testing.T) {
 	}
 }
 
+// TestSetAllHeaders verifies that SetAllHeaders function works as expected.
+func TestSetAllHeaders(t *testing.T) {
+	s := NewStream("")
+
+	headers := map[string]string{
+		"hey":  "ho",
+		"lets": "go",
+	}
+	s.SetAllHeaders(headers)
+	if !reflect.DeepEqual(headers, s.headers) {
+		t.Fatalf("Unexpected headers map. Expected: %+v - Found: %+v", headers, s.headers)
+	}
+}
+
+// TestSetHeader verifies that SetHeader function works as expected.
+func TestSetHeader(t *testing.T) {
+	s := NewStream("")
+
+	s.SetHeader("hey", "oh")
+	val, ok := s.headers["hey"]
+	if !ok {
+		t.Fatalf("The key-pair should exist!")
+	}
+	if val != "oh" {
+		t.Fatalf("Unexpected value found. Expected: `%s` - Found: `%s`.", "oh", val)
+	}
+}
+
+// TestRemoveHeader verifies that RemoveHeader function works as expected.
+func TestRemoveHeader(t *testing.T) {
+	s := NewStream("")
+
+	headers := map[string]string{
+		"hey":  "ho",
+		"lets": "go",
+	}
+	s.SetAllHeaders(headers)
+	if !reflect.DeepEqual(headers, s.headers) {
+		t.Fatalf("Unexpected headers map. Expected: %+v - Found: %+v", headers, s.headers)
+	}
+
+	s.RemoveHeader("NOT PRESENT")
+
+	s.RemoveHeader("hey")
+	val, ok := s.headers["lets"]
+	if !ok {
+		t.Fatalf("The key-pair should exist!")
+	}
+	if val != "go" {
+		t.Fatalf("Unexpected value found. Expected: `%s` - Found: `%s`.", "go", val)
+	}
+}
+
 // TestFireRequest successfully fires an HTTP PUT request.
 func TestFireRequest(t *testing.T) {
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {

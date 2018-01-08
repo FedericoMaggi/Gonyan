@@ -10,10 +10,11 @@ import (
 
 // Stream defines the standard Gonyan Stream for HTTP and HTTPS requests.
 type Stream struct {
-	method      string
-	url         string
-	useHTTPS    bool
-	prepareBody func([]byte) ([]byte, error)
+	method      string                       // HTTP used method;
+	url         string                       // The URL webhook;
+	useHTTPS    bool                         // Flag to activate TLS/SSL;
+	prepareBody func([]byte) ([]byte, error) // Function executed on body before transmission;
+	headers     map[string]string            // HTTP headers container;
 }
 
 // NewStream creates a new HTTP stream and sets its webhook URL.
@@ -23,6 +24,7 @@ func NewStream(url string) *Stream {
 		url:         url,
 		useHTTPS:    false,
 		prepareBody: nil,
+		headers:     make(map[string]string),
 	}
 }
 
@@ -63,6 +65,37 @@ func (h *Stream) EnableHTTPS() *Stream {
 	return h
 }
 
+// SetAllHeaders sets provided key-value pairs for later usage as HTTP headers.
+// Note: the method will return the same instance of the invoked structure
+// so that multiple `Set` functions can be chained together.
+func (h *Stream) SetAllHeaders(header map[string]string) *Stream {
+	h.headers = header
+	return h
+}
+
+// SetHeader sets provided key-value pair for later usage as HTTP headers.
+// Note: the method will return the same instance of the invoked structure
+// so that multiple `Set` functions can be chained together.
+func (h *Stream) SetHeader(key, value string) *Stream {
+	h.headers[key] = value
+	return h
+}
+
+// RemoveHeader removes provided key-value pair from HTTP headers.
+// Note: the method will return the same instance of the invoked structure
+// so that multiple `Set` functions can be chained together.
+func (h *Stream) RemoveHeader(key string) {
+	delete(h.headers, key)
+}
+
+// SetQueryParam sets provided key-value pair for later usage
+// as HTTP Query parameters.
+// Note: the method will return the same instance of the invoked structure
+// so that multiple `Set` functions can be chained together.
+func (h *Stream) SetQueryParam(key, value string) *Stream {
+	return h
+}
+
 // Write function defined to implement the Stream interface.
 // The function prepares the body and fires the HTTP/HTTPS request
 // using (optionally provided) headers and GET query parameters.
@@ -98,6 +131,8 @@ func (h *Stream) fireRequest(preparedBody []byte) error {
 	if err != nil {
 		return fmt.Errorf("request creation failed due to: %s", err.Error())
 	}
+
+	// request.Header.Add
 
 	client := &http.Client{}
 	response, err := client.Do(request)

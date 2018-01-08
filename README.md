@@ -1,6 +1,7 @@
 # Gonyan
 Gonyan is a simple stream based logging library for Go.
 
+[![Go Report Card](https://goreportcard.com/badge/github.com/FedericoMaggi/gonyan)](https://goreportcard.com/report/github.com/FedericoMaggi/gonyan)&nbsp;
 [![Build Status](https://travis-ci.org/FedericoMaggi/gonyan.svg?branch=master)](https://travis-ci.org/FedericoMaggi/gonyan)&nbsp;
 [![GoDoc](https://godoc.org/github.com/FedericoMaggi/gonyan?status.svg)](https://godoc.org/github.com/FedericoMaggi/gonyan)&nbsp;
 [![codecov](https://codecov.io/gh/FedericoMaggi/gonyan/branch/master/graph/badge.svg)](https://codecov.io/gh/FedericoMaggi/gonyan)&nbsp;

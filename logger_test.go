@@ -228,3 +228,32 @@ func TestLoggerStreamsProperLogDataForFatal(t *testing.T) {
 		t.Fatalf("Unexpected message received from stream. Expected: `%s`, found: `%s`", expected, message)
 	}
 }
+
+// TestLoggerMutexDisable verifies that the mutex Disable function is properly
+// wrapped by the default logger instance.
+func TestLoggerMutexDisable(t *testing.T) {
+	l := NewLogger("", false)
+	if l.m.disabled != false {
+		t.Fatalf("Disabled flag should be false!")
+	}
+
+	l.DisableLock()
+	if l.m.disabled == false {
+		t.Fatalf("Disabled flag should be true!")
+	}
+}
+
+// TestLoggerMutexReenable verifies that the mutex Enable function is properly
+// wrapped by the default logger instance.
+func TestLoggerMutexReenable(t *testing.T) {
+	l := NewLogger("", false)
+	if l.m.disabled != false {
+		t.Fatalf("Disabled flag should be false!")
+	}
+
+	l.DisableLock()
+	l.ReenableLock()
+	if l.m.disabled != false {
+		t.Fatalf("Disabled flag should be false!")
+	}
+}

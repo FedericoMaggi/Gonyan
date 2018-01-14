@@ -10,18 +10,18 @@ import (
 // streams to log to and a few useful settings to customise the logs such as
 // custom tag, metadata and timestamp.
 type Logger struct {
-	tag       string
-	timestamp bool
-	streams   *StreamManager
-	metadata  map[string]string
+	tag           string
+	timestamp     bool
+	streamManager *StreamManager
+	metadata      map[string]string
 }
 
 // NewLogger creates a new logger instance with provided configuration.
 func NewLogger(tag string, timestamp bool) *Logger {
 	logger := &Logger{
-		tag:       tag,
-		timestamp: timestamp,
-		streams:   NewStreamManager(),
+		tag:           tag,
+		timestamp:     timestamp,
+		streamManager: NewStreamManager(),
 	}
 	return logger
 }
@@ -42,7 +42,7 @@ func (l *Logger) ClearMetadata() {
 // RegisterStream register provided stream associating it with provided level
 // inside the interal StreamManager instance.
 func (l *Logger) RegisterStream(level LogLevel, stream Stream) {
-	l.streams.Register(level, stream)
+	l.streamManager.Register(level, stream)
 }
 
 // Debugf logs provided message into registered debug level streams.
@@ -149,7 +149,7 @@ func (l *Logger) Log(level LogLevel, message string) {
 	m := NewLogMessage(l.tag, t, message, l.metadata)
 
 	// Send message to streams via the StreamManager.
-	if err := l.streams.Send(level, m); err != nil {
+	if err := l.streamManager.Send(level, m); err != nil {
 		fmt.Printf("[FATAL] [gonyan] Can't send log `%s` to stream `%s`", message, GetLevelLabel(level))
 	}
 }

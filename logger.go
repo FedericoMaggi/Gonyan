@@ -14,6 +14,7 @@ type Logger struct {
 	timestamp     bool
 	streamManager *StreamManager
 	metadata      map[string]string
+	m             mutex
 }
 
 // NewLogger creates a new logger instance with provided configuration.
@@ -37,6 +38,16 @@ func (l *Logger) SetMetadata(metadata map[string]string) {
 // ClearMetadata clears the optional metadata from the logger instance.
 func (l *Logger) ClearMetadata() {
 	l.metadata = nil
+}
+
+// DisableLock will disable the logger internal mutex operations.
+func (l *Logger) DisableLock() {
+	l.m.Disable()
+}
+
+// ReenableLock will reenable the logger internal mutex operations.
+func (l *Logger) ReenableLock() {
+	l.m.Enable()
 }
 
 // RegisterStream register provided stream associating it with provided level
@@ -149,6 +160,8 @@ func (l *Logger) Log(level LogLevel, message string) {
 	m := NewLogMessage(l.tag, t, message, l.metadata)
 
 	// Send message to streams via the StreamManager.
+	l.m.Lock()
+	defer l.m.Unlock()
 	if err := l.streamManager.Send(level, m); err != nil {
 		fmt.Printf("[FATAL] [gonyan] Can't send log `%s` to stream `%s`", message, GetLevelLabel(level))
 	}

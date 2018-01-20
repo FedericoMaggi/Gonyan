@@ -130,7 +130,6 @@ func (b *BufferedStream) SetFlatBufferSeparator(separator byte) {
 // Write will store provided log into the buffer prior transmission. If the log
 // makes the buffer full it will fire the log transmission to the stream.
 func (b *BufferedStream) Write(message []byte) (int, error) {
-	fmt.Printf("WRITING %s\n", string(message))
 	var oldBuffer [][]byte
 	var oldSize int
 
@@ -157,7 +156,6 @@ func (b *BufferedStream) Write(message []byte) (int, error) {
 	// If the buffer was full fire a transmission with provided data.
 	if oldBuffer != nil && oldSize != 0 {
 		go func(buffer [][]byte, size int) {
-			fmt.Printf("FIRING!! %+v %d\n", buffer, size)
 			if err := b.fireTransmission(buffer, size); err != nil {
 				if b.fatal != nil {
 					b.fatal(fmt.Errorf("gonyan buffered stream failure during data transmission: %s", err.Error()))

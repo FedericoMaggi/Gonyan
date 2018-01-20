@@ -68,7 +68,6 @@ func (b *BufferedStream) SetBufferLimit(bufferLimit int) {
 	if bufferLimit < 0 {
 		return
 	}
-
 	b.limit = bufferLimit
 }
 
@@ -190,12 +189,16 @@ func (b *BufferedStream) flush() ([][]byte, int) {
 // be provided.
 func flatten(matrix [][]byte, separator byte) []byte {
 	flat := []byte{}
-	for _, row := range matrix {
+	for i, row := range matrix {
 		if len(row) == 0 {
 			continue
 		}
 		flat = append(flat, row...)
-		flat = append(flat, separator)
+
+		// Avoid appending the separator after last message.
+		if i+1 != len(matrix) {
+			flat = append(flat, separator)
+		}
 	}
 	return flat
 }

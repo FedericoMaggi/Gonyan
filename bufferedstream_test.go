@@ -2,8 +2,11 @@ package gonyan
 
 import (
 	"bytes"
+	"fmt"
 	"strings"
+	"sync"
 	"testing"
+	"time"
 )
 
 func TestNewBufferedStream(t *testing.T) {
@@ -128,6 +131,30 @@ func TestSetStartingSize(t *testing.T) {
 	}
 }
 
+func TestSetFatalFn(t *testing.T) {
+	b := NewBufferedStream(nil)
+	mtx := sync.Mutex{}
+	invoked := false
+
+	fn := func(err error) {
+		mtx.Lock()
+		invoked = true
+		mtx.Unlock()
+	}
+	b.SetFatalFn(fn)
+
+	b.fatal(fmt.Errorf("that"))
+	time.Sleep(500 * time.Millisecond)
+
+	mtx.Lock()
+	hasBeenInvoked := invoked
+	mtx.Unlock()
+
+	if !hasBeenInvoked {
+		t.Fatalf("The fatal fn should habe been invoked!")
+	}
+}
+
 func TestSetFlatBufferSeparator(t *testing.T) {
 	b := NewBufferedStream(nil)
 	if b.separator != '\n' {
@@ -136,6 +163,75 @@ func TestSetFlatBufferSeparator(t *testing.T) {
 	b.SetFlatBufferSeparator('c')
 	if b.separator != 'c' {
 		t.Fatalf("Unexpected default separator. Expected: %c - Found: %c", 'c', b.separator)
+	}
+}
+
+func TestWriteWithCappedLimitBuffer(t *testing.T) {
+	s := newMockStream(1)
+	b := NewBufferedStream(s)
+	b.SetBufferLimit(10)
+
+	for i := 0; i < 11; i++ {
+		n, err := b.Write([]byte(fmt.Sprintf("message_%d", i)))
+		if err != nil {
+			t.Fatalf("Unexpected error: %s.", err.Error())
+		}
+
+		if i < 10 {
+			if n != i+1 {
+				t.Fatalf("Unexpected number returned. Expected: %d - Found: %d.", i+1, n)
+			}
+		}
+		if i == 10 {
+			if n != 1 {
+				t.Fatalf("Unexpected number returned. Expected: %d - Found: %d.", 1, n)
+			}
+		}
+	}
+
+	received := <-s.out
+	t.Logf("Received bytes: `%s`.", string(received))
+
+	splitted := strings.Split(received, "\n")
+	for i := 0; i < 10; i++ {
+		if splitted[i] != fmt.Sprintf("message_%d", i) {
+			t.Fatalf("Unexpected string for position %d. Expected: %s - Found: %s.", i, fmt.Sprintf("message_%d", i), splitted[i])
+		}
+	}
+
+	if bytes.Compare([]byte("message_10"), b.buffer[0]) != 0 {
+		t.Fatalf("Unexpected value in buffer position 0. Expected: %s - Found: %s.", "message_10", string(b.buffer[0]))
+	}
+}
+
+func TestBufferAutoResizingNoLimit(t *testing.T) {
+	b := NewBufferedStream(nil)
+	if set, _ := b.SetStartingSize(5, false); !set {
+		t.Fatalf("Starting size set failed.")
+	}
+
+	if len(b.buffer) != 5 {
+		t.Fatalf("Unexpected buffer size. Expected: %d - Found: %d.", 5, len(b.buffer))
+	}
+
+	for i := 0; i < 10; i++ {
+		n, err := b.Write([]byte(fmt.Sprintf("message_%d", i)))
+		if err != nil {
+			t.Fatalf("Unexpected error: %s.", err.Error())
+		}
+		if n != i+1 {
+			t.Fatalf("Unexpected number returned. Expected: %d - Found: %d.", i+1, n)
+		}
+	}
+
+	if len(b.buffer) != 10 {
+		t.Fatalf("Unexpected buffer size. Expected: %d - Found: %d.", 10, len(b.buffer))
+	}
+
+	for i := 0; i < 10; i++ {
+		if string(b.buffer[i]) != fmt.Sprintf("message_%d", i) {
+			t.Fatalf("Unexpected string for position %d. Expected: %s - Found: %s.", i, fmt.Sprintf("message_%d", i), string(b.buffer[i]))
+		}
 	}
 }
 
@@ -203,6 +299,75 @@ func TestFireTransmissionFailure(t *testing.T) {
 		t.Fatalf("Unexpected nil error!")
 	}
 	t.Logf("Expected error: %s.", err.Error())
+}
+
+func TestWriteFailureFatalInvocation(t *testing.T) {
+	mtx := sync.Mutex{}
+	invoked := false
+
+	// Failure due to Stream.Write errors.
+	s := newMockStream(1)
+	b := NewBufferedStream(s)
+	b.SetFatalFn(func(err error) {
+		mtx.Lock()
+		invoked = true
+		mtx.Unlock()
+	})
+	b.SetBufferLimit(2)
+	n, err := b.Write([]byte("hey"))
+	if err != nil {
+		t.Fatalf("Unexpected error: %s.", err.Error())
+	}
+	if n != 1 {
+		t.Fatalf("Unexpected number returned. Expected: %d - Found: %d", 1, n)
+	}
+	n, err = b.Write([]byte("oh"))
+	if err != nil {
+		t.Fatalf("Unexpected error: %s.", err.Error())
+	}
+	if n != 2 {
+		t.Fatalf("Unexpected number returned. Expected: %d - Found: %d", 2, n)
+	}
+	n, err = b.Write([]byte("let's"))
+	if err != nil {
+		t.Fatalf("Unexpected error: %s.", err.Error())
+	}
+	if n != 1 {
+		t.Fatalf("Unexpected number returned. Expected: %d - Found: %d", 1, n)
+	}
+	n, err = b.Write([]byte("go"))
+	if err != nil {
+		t.Fatalf("Unexpected error: %s.", err.Error())
+	}
+	if n != 2 {
+		t.Fatalf("Unexpected number returned. Expected: %d - Found: %d", 2, n)
+	}
+
+	mtx.Lock()
+	hasBeenInvoked := invoked
+	mtx.Unlock()
+
+	if hasBeenInvoked {
+		t.Fatalf("The fatal fn should not have been invoked!")
+	}
+
+	n, err = b.Write([]byte("AND NOW THE FATAL"))
+	if err != nil {
+		t.Fatalf("Unexpected error: %s.", err.Error())
+	}
+	if n != 1 {
+		t.Fatalf("Unexpected number returned. Expected: %d - Found: %d", 1, n)
+	}
+
+	time.Sleep(500 * time.Millisecond)
+
+	mtx.Lock()
+	hasBeenInvoked = invoked
+	mtx.Unlock()
+
+	if !hasBeenInvoked {
+		t.Fatalf("The fatal fn should have been invoked!")
+	}
 }
 
 func TestFlush(t *testing.T) {

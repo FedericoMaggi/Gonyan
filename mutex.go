@@ -28,7 +28,7 @@ func (m *mutex) Unlock() {
 
 // Disable sets the mutex state to disabled thus preventing the Lock and Unlock
 // functions to actually make a difference.
-// Beware of disabling the mutex while in actual use, expecially during a
+// Beware of disabling the mutex while in actual use, especially during a
 // critical section execution because, since Unlock won't work it will cause
 // deadlocks.
 func (m *mutex) Disable() {

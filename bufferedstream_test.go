@@ -23,6 +23,12 @@ func TestNewBufferedStream(t *testing.T) {
 	if b.separator != DefaultFlatByteSliceSeparator {
 		t.Fatalf("Unexpected default separator. Expected: %c - Found: %c.", DefaultFlatByteSliceSeparator, b.separator)
 	}
+	if b.routineRunning {
+		t.Fatalf("Unexpected boolean flag. Routine Running should be false.")
+	}
+	if b.scheduleInteval != 0 {
+		t.Fatalf("Unexpected default schedule intervale. Expected: %d - Found: %d.", 0, b.scheduleInteval)
+	}
 }
 
 func TestSetBufferLimit(t *testing.T) {
@@ -126,8 +132,251 @@ func TestSetStartingSize(t *testing.T) {
 	}
 
 	received := <-s.out
-	if received != "logging something nasty, again\n" {
-		t.Fatalf("Unexpected received message. Expected: `%s` - Found: `%s`.", "logging something nasty, again\n", received)
+	if received != "logging something nasty, again" {
+		t.Fatalf("Unexpected received message. Expected: `%s` - Found: `%s`.", "logging something nasty, again", received)
+	}
+}
+
+func TestLogMessageWithTrailingNewLine(t *testing.T) {
+
+	s := newMockStream(5)
+	b := NewBufferedStream(s)
+	// Flag for transmission is true and the stream is now valid so
+	// we do not expect an error.
+	b.Write([]byte("logging something with newline\n"))
+	set, err := b.SetStartingSize(6, true)
+	if !set {
+		t.Fatalf("Unexpected set flag, should be true, found: %t.", set)
+	}
+	if err != nil {
+		t.Fatalf("Unexpected error: %s.", err.Error())
+	}
+	received := <-s.out
+	// Note: the newline character here is the one actually inserted in the
+	// log, not the separator added when flattening the buffer.
+	if received != "logging something with newline\n" {
+		t.Fatalf("Unexpected received message. Expected: `%s` - Found: `%s`.", "logging something with newline\n", received)
+	}
+}
+
+func TestSetSchedulingInterval(t *testing.T) {
+	b := NewBufferedStream(nil)
+
+	// Mess up internal values.
+	b.scheduleInteval = 100
+	b.routineMutex.Lock()
+	b.routineRunning = true
+	b.routineMutex.Unlock()
+
+	if err := b.SetSchedulingInterval(-100, false); err != nil {
+		t.Fatalf("Unexpected error: %s.", err.Error())
+	}
+	if b.scheduleInteval != 0 {
+		t.Fatalf("Unexpected scheduleInterval. Expected: %d - Found: %d.", 0, b.scheduleInteval)
+	}
+	if b.routineRunning {
+		t.Fatalf("Unexpected routineRunning flag. Should be false!")
+	}
+
+	// Mess up internal values.
+	b.scheduleInteval = 100
+	b.routineMutex.Lock()
+	b.routineRunning = true
+	b.routineMutex.Unlock()
+	if err := b.SetSchedulingInterval(0, false); err != nil {
+		t.Fatalf("Unexpected error: %s.", err.Error())
+	}
+	if b.scheduleInteval != 0 {
+		t.Fatalf("Unexpected scheduleInterval. Expected: %d - Found: %d.", 0, b.scheduleInteval)
+	}
+	if b.routineRunning {
+		t.Fatalf("Unexpected routineRunning flag. Should be false!")
+	}
+
+	// Mess up internal values.
+	b.scheduleInteval = 100
+	b.routineMutex.Lock()
+	b.routineRunning = true
+	b.routineMutex.Unlock()
+	if err := b.SetSchedulingInterval(0, true); err != nil {
+		t.Fatalf("Unexpected error: %s.", err.Error())
+	}
+	if b.scheduleInteval != 0 {
+		t.Fatalf("Unexpected scheduleInterval. Expected: %d - Found: %d.", 0, b.scheduleInteval)
+	}
+	if b.routineRunning {
+		t.Fatalf("Unexpected routineRunning flag. Should be false!")
+	}
+
+	// Mess up internal values.
+	b.scheduleInteval = 100
+	if err := b.SetSchedulingInterval(10*time.Second, false); err != nil {
+		t.Fatalf("Unexpected error: %s.", err.Error())
+	}
+	if b.scheduleInteval != 10*time.Second {
+		t.Fatalf("Unexpected scheduleInterval. Expected: %d - Found: %d.", 10*time.Second, b.scheduleInteval)
+	}
+	if b.routineRunning {
+		t.Fatalf("Unexpected routineRunning flag. Should be false!")
+	}
+
+	// Mess up internal values.
+	b.scheduleInteval = 100
+	if err := b.SetSchedulingInterval(1*time.Second, true); err != nil {
+		t.Fatalf("Unexpected error: %s.", err.Error())
+	}
+	defer b.StopAutonomousTransmission()
+	if b.scheduleInteval != 1*time.Second {
+		t.Fatalf("Unexpected scheduleInterval. Expected: %d - Found: %d.", 1*time.Second, b.scheduleInteval)
+	}
+	time.Sleep(2 * time.Second) // Wait for the routine to be started.
+	b.routineMutex.Lock()
+	if !b.routineRunning {
+		b.routineMutex.Unlock()
+		t.Fatalf("Unexpected routineRunning flag. Should be true!")
+	}
+	b.routineMutex.Unlock()
+}
+
+func TestAutonomousTransmissionRoutine(t *testing.T) {
+	mock := newMockStream(3)
+	b := NewBufferedStream(mock)
+
+	go func() {
+		ticker := time.NewTicker(1 * time.Second)
+		if err := b.autonomousTranmissionRoutine(ticker); err != nil {
+			t.Fatalf("Unexpected error: %s", err.Error())
+		}
+	}()
+
+	time.Sleep(2 * time.Second)
+
+	n, err := b.Write([]byte("hej"))
+	if err != nil {
+		t.Fatalf("Unexpected error: %s", err.Error())
+	}
+	if n != 1 {
+		t.Fatalf("Unexpected buffer count returned. Expected: %d - Found: %d.", 1, n)
+	}
+
+	time.Sleep(2 * time.Second)
+
+	// Read from chan
+	select {
+	case message := <-mock.out:
+		if message != string("hej") {
+			t.Fatalf("Unexpected read message. Expected: %s - Found: %s.", "hej", string(message))
+		}
+	default:
+		t.Fatalf("Failed read from mock stream.")
+	}
+
+	time.Sleep(1 * time.Second)
+
+	n, err = b.Write([]byte("hej"))
+	if err != nil {
+		t.Fatalf("Unexpected error: %s", err.Error())
+	}
+	if n != 1 {
+		t.Fatalf("Unexpected buffer count returned. Expected: %d - Found: %d.", 1, n)
+	}
+	n, err = b.Write([]byte("hej"))
+	if err != nil {
+		t.Fatalf("Unexpected error: %s", err.Error())
+	}
+	if n != 2 {
+		t.Fatalf("Unexpected buffer count returned. Expected: %d - Found: %d.", 2, n)
+	}
+	n, err = b.Write([]byte("monika"))
+	if err != nil {
+		t.Fatalf("Unexpected error: %s", err.Error())
+	}
+	if n != 3 {
+		t.Fatalf("Unexpected buffer count returned. Expected: %d - Found: %d.", 3, n)
+	}
+
+	time.Sleep(2 * time.Second)
+
+	// Read from chan
+	select {
+	case messagesBuffer := <-mock.out:
+		messages := strings.Split(messagesBuffer, "\n")
+		if len(messages) != 3 {
+			t.Logf("Messages: %+v.", messages)
+			t.Fatalf("Unexpected number of messages. Expected: %d - Found: %d.", 3, len(messages))
+		}
+		if messages[0] != "hej" {
+			t.Fatalf("Unexpected message[0]. Expected: %s - Found: %s.", "hej", messages[0])
+		}
+		if messages[1] != "hej" {
+			t.Fatalf("Unexpected message[0]. Expected: %s - Found: %s.", "hej", messages[1])
+		}
+		if messages[2] != "monika" {
+			t.Fatalf("Unexpected message[0]. Expected: %s - Found: %s.", "monika", messages[2])
+		}
+	default:
+		t.Fatalf("Failed read from mock stream.")
+	}
+	b.routineMutex.Lock()
+	b.routineRunning = false
+	b.routineMutex.Unlock()
+	time.Sleep(1 * time.Second)
+}
+
+func TestAutonomousTransmissionSafeStop(t *testing.T) {
+	mock := newMockStream(1)
+	b := NewBufferedStream(mock)
+
+	ticker := time.NewTicker(1 * time.Second)
+
+	go func(ticker *time.Ticker) {
+		if err := b.autonomousTranmissionRoutine(ticker); err != nil {
+			t.Fatalf("Unexpected error on exit: %s.", err.Error())
+		}
+	}(ticker)
+
+	time.Sleep(2 * time.Second)
+
+	// Force ticker stop from the outside.
+	ticker.Stop()
+}
+
+func TestAutonomousTransmissionErrors(t *testing.T) {
+	failer := newFailerMockStream("fail")
+	b := NewBufferedStream(failer)
+
+	ticker := time.NewTicker(1 * time.Second)
+
+	n, err := b.Write([]byte("write something in order to trigger a buffer flush"))
+	if err != nil {
+		t.Fatalf("Unexpected error: %s.", err.Error())
+	}
+	if n != 1 {
+		t.Fatalf("Unexpected count: Expected: %d - Found: %d.", 1, n)
+
+	}
+
+	err = b.autonomousTranmissionRoutine(ticker)
+	if err == nil {
+		t.Fatalf("Expected error, found nil.")
+	}
+	t.Logf("Expected error: %s.", err.Error())
+}
+
+func TestStartAutonomousTransmissionErrors(t *testing.T) {
+	mock := newMockStream(3)
+	b := NewBufferedStream(mock)
+
+	// Falsify routine running flag.
+	b.routineRunning = true
+	if err := b.StartAutonomousTransmission(); err == nil {
+		t.Fatalf("Expected error. Found nil.")
+	}
+
+	b.routineRunning = false
+	b.scheduleInteval = 0
+	if err := b.StartAutonomousTransmission(); err == nil {
+		t.Fatalf("Expected error. Found nil.")
 	}
 }
 
@@ -400,10 +649,28 @@ func TestFlatten(t *testing.T) {
 		[]byte("c"),
 		[]byte("d"),
 	}
-	separator := byte('|')
 	expected := []byte("a|b|c|d")
 
-	flattened := flatten(raw, separator)
+	flattened := flatten(raw, byte('|'))
+	if bytes.Compare(expected, flattened) != 0 {
+		t.Fatalf("There where differences between the bytes. Expected: %s - Found: %s.", string(expected), string(flattened))
+	}
+
+	expected = []byte("a\nb\nc\nd")
+	flattened = flatten(raw, byte('\n'))
+	if bytes.Compare(expected, flattened) != 0 {
+		t.Fatalf("There where differences between the bytes. Expected: %s - Found: %s.", string(expected), string(flattened))
+	}
+
+	rawArr := [5][]byte{
+		[]byte("a"),
+		[]byte("b"),
+		[]byte("c"),
+		[]byte("d"),
+		nil,
+	}
+	expected = []byte("a:b:c:d")
+	flattened = flatten(rawArr[:], byte(':'))
 	if bytes.Compare(expected, flattened) != 0 {
 		t.Fatalf("There where differences between the bytes. Expected: %s - Found: %s.", string(expected), string(flattened))
 	}

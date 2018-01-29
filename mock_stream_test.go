@@ -22,3 +22,17 @@ func (m *mockStream) Write(messageBytes []byte) (int, error) {
 	m.out <- string(messageBytes)
 	return len(messageBytes), nil
 }
+
+type failerMockStream struct {
+	err string
+}
+
+func newFailerMockStream(expectedError string) *failerMockStream {
+	return &failerMockStream{
+		err: expectedError,
+	}
+}
+
+func (f *failerMockStream) Write(messageBytes []byte) (int, error) {
+	return 0, fmt.Errorf(f.err)
+}

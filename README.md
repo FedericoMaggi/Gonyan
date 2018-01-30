@@ -22,7 +22,7 @@ import (
 )
 
 func main() {
-  log := gonyan.NewLogger("GH-Example", nil, true)
+  log := gonyan.NewLogger("GH-Example", true)
 
   log.RegisterStream(gonyan.Fatal, os.Stderr)
   if verboseMode {

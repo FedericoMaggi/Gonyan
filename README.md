@@ -18,7 +18,7 @@ package main
 
 import (
   "os"
-  "github.com/FedericoMaggi/gonyan"
+  "github.com/fredmaggiowski/gonyan"
 )
 
 func main() {

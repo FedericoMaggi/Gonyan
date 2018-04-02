@@ -1,11 +1,11 @@
 # Gonyan
 Gonyan is a simple stream based logging library for Go.
 
-[![Go Report Card](https://goreportcard.com/badge/github.com/FedericoMaggi/gonyan)](https://goreportcard.com/report/github.com/FedericoMaggi/gonyan)&nbsp;
-[![Build Status](https://travis-ci.org/FedericoMaggi/gonyan.svg?branch=master)](https://travis-ci.org/FedericoMaggi/gonyan)&nbsp;
-[![GoDoc](https://godoc.org/github.com/FedericoMaggi/gonyan?status.svg)](https://godoc.org/github.com/FedericoMaggi/gonyan)&nbsp;
-[![codecov](https://codecov.io/gh/FedericoMaggi/gonyan/branch/master/graph/badge.svg)](https://codecov.io/gh/FedericoMaggi/gonyan)&nbsp;
-[![GitHub issues](https://img.shields.io/github/issues/FedericoMaggi/gonyan.svg "GitHub issues")](https://github.com/FedericoMaggi/gonyan)
+[![Go Report Card](https://goreportcard.com/badge/github.com/fredmaggiowski/gonyan)](https://goreportcard.com/report/github.com/fredmaggiowski/gonyan)&nbsp;
+[![Build Status](https://travis-ci.org/fredmaggiowski/gonyan.svg?branch=master)](https://travis-ci.org/fredmaggiowski/gonyan)&nbsp;
+[![GoDoc](https://godoc.org/github.com/fredmaggiowski/gonyan?status.svg)](https://godoc.org/github.com/fredmaggiowski/gonyan)&nbsp;
+[![codecov](https://codecov.io/gh/fredmaggiowski/gonyan/branch/master/graph/badge.svg)](https://codecov.io/gh/fredmaggiowski/gonyan)&nbsp;
+[![GitHub issues](https://img.shields.io/github/issues/fredmaggiowski/gonyan.svg "GitHub issues")](https://github.com/fredmaggiowski/gonyan)
 
 
 The idea behind the package is to allow the creation of a logging utility capable of sending machine readable logs to different targets (called _Streams_) based on the desired logging level.

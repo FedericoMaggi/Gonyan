@@ -49,55 +49,69 @@ func TestSetBufferLimit(t *testing.T) {
 }
 
 func TestSetStartingSize(t *testing.T) {
+	type TestCase struct {
+		size                int
+		send                bool
+		expectedSet         bool
+		expectedError       bool
+		expectedInitialSize int
+	}
+
+	testCases := []TestCase{
+		TestCase{
+			size: -1, send: true,
+			expectedSet: false, expectedError: false,
+			expectedInitialSize: DefaultPreallocatedBufferSize,
+		},
+		TestCase{
+			size: DefaultPreallocatedBufferSize, send: true,
+			expectedSet: false, expectedError: false,
+			expectedInitialSize: DefaultPreallocatedBufferSize,
+		},
+		TestCase{
+			size: 10, send: false,
+			expectedSet: true, expectedError: false,
+			expectedInitialSize: 10,
+		},
+
+		// Flag for transmission is true but the stream is not valid
+		// still we do not expect an error since the buffer is empty.
+		TestCase{
+			size: 11, send: true,
+			expectedSet: true, expectedError: false,
+			expectedInitialSize: 11,
+		},
+	}
+
 	b := NewBufferedStream(nil)
 	if b.initialSize != DefaultPreallocatedBufferSize {
 		t.Fatalf("Unexpected default initialSize value. Expected: %d - found: %d", DefaultPreallocatedBufferSize, b.initialSize)
 	}
 
-	set, err := b.SetStartingSize(-1, true)
-	if set {
-		t.Fatalf("Unexpected set flag should be false, found: %t.", set)
-	}
-	if err != nil {
-		t.Fatalf("Unexpected error: %s", err.Error())
-	}
+	for i, testCase := range testCases {
+		set, err := b.SetStartingSize(testCase.size, testCase.send)
+		if set != testCase.expectedSet {
+			t.Fatalf("Case#%d - Unexpected set flag should be %t, found: %t.", i, testCase.expectedSet, set)
+		}
 
-	set, err = b.SetStartingSize(DefaultPreallocatedBufferSize, true)
-	if set {
-		t.Fatalf("Unexpected set flag, should be false, found: %t.", set)
+		if testCase.expectedError && err == nil {
+			t.Fatalf("Case#%d - An error was expected, found %v instead", i, err)
+		}
+		if !testCase.expectedError && err != nil {
+			t.Fatalf("Case#%d - Unexpected error found: %s.", i, err.Error())
+		}
+		if b.initialSize != testCase.expectedInitialSize {
+			t.Fatalf("Case#%d - Unexpected initial size found. Expected: %d - Found: %d.", i, testCase.expectedInitialSize, b.initialSize)
+		}
 	}
-	if err != nil {
-		t.Fatalf("Unexpected error: %s", err.Error())
-	}
+}
 
-	set, err = b.SetStartingSize(10, false)
-	if !set {
-		t.Fatalf("Unexpected set flag, should be true, found: %t.", set)
-	}
-	if err != nil {
-		t.Fatalf("Unexpected error: %s", err.Error())
-	}
-	if b.initialSize != 10 {
-		t.Fatalf("Unexpected initial buffer size. Expected: %d - Found: %d.", 10, b.initialSize)
-	}
-
-	// Flag for transmission is true but the stream is not valid
-	// still we do not expect an error since the buffer is empty.
-	set, err = b.SetStartingSize(11, true)
-	if !set {
-		t.Fatalf("Unexpected set flag, should be true, found: %t.", set)
-	}
-	if err != nil {
-		t.Fatalf("Unexpected error: %s", err.Error())
-	}
-	if b.initialSize != 11 {
-		t.Fatalf("Unexpected default initial buffer size. Expected: %d - Found: %d.", 11, b.initialSize)
-	}
-
+func TestBufferedStreamSetStartingSizeEdgeCases(t *testing.T) {
+	b := NewBufferedStream(nil)
 	// Flag for transmission is true but the stream is not valid and
 	// we expect an error since we have sent a message to the stream.
 	b.Write([]byte(`logging something nasty`))
-	set, err = b.SetStartingSize(5, true)
+	set, err := b.SetStartingSize(5, true)
 	if !set {
 		t.Fatalf("Unexpected set flag, should be true, found: %t.", set)
 	}

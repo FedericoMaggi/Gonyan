@@ -58,25 +58,24 @@ func TestSetStartingSize(t *testing.T) {
 	}
 
 	testCases := []TestCase{
-		TestCase{
+		{
 			size: -1, send: true,
 			expectedSet: false, expectedError: false,
 			expectedInitialSize: DefaultPreallocatedBufferSize,
 		},
-		TestCase{
+		{
 			size: DefaultPreallocatedBufferSize, send: true,
 			expectedSet: false, expectedError: false,
 			expectedInitialSize: DefaultPreallocatedBufferSize,
 		},
-		TestCase{
+		{
 			size: 10, send: false,
 			expectedSet: true, expectedError: false,
 			expectedInitialSize: 10,
 		},
-
 		// Flag for transmission is true but the stream is not valid
 		// still we do not expect an error since the buffer is empty.
-		TestCase{
+		{
 			size: 11, send: true,
 			expectedSet: true, expectedError: false,
 			expectedInitialSize: 11,
